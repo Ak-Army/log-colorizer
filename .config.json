@@ -1,0 +1,50 @@
+[{
+    "name": "console",
+    "expr": "(?i)[\\s\\W]console[\\s\\W]",
+    "color": "white+b"
+},{
+    "name": "debug",
+    "expr": "(?i)[\\s\\W](dbg|debug)[\\s\\W]",
+    "color": "cyan+b"
+},{
+    "name": "notice",
+    "expr": "(?i)[\\s\\W](inf|info|Note|notice|ntc)[\\s\\W]",
+    "color": "magenta+b"
+},{
+    "name": "warn",
+    "expr": "(?i)[\\s\\W](wrn|warn|warning)[\\s\\W]",
+    "color": "blue+b"
+},{
+    "name": "error",
+    "expr": "(?i)[\\s\\W](err|error)[\\s\\W]",
+    "color": "yellow+b"
+},{
+    "name": "cri",
+    "expr": "(?i)[\\s\\W](cri|crit|critical)[\\s\\W]",
+    "color": "green+b"
+},{
+    "name": "alert",
+    "expr": "(?i)[\\s\\W](ale|alert)[\\s\\W]",
+    "color": "red+b"
+},{
+    "name": "emr",
+    "expr": "(?i)[\\s\\W](emr|emergency)[\\s\\W]",
+    "color": "red+h"
+},{
+    "name": "file",
+    "expr": "(?i)[\\s\\W]{file,\"([^\"]+)\"},{line,([^}]+)}[\\s\\W]",
+    "color": "green+h",
+    "replace": "$1:$2"
+},{
+    "name": "datetime",
+    "expr": "(?im)^\\d{4}\\W\\d{2}\\W\\d{2}((\\W|T)\\d{2}\\W\\d{2}\\W\\d{2}(\\.\\d+|\\W\\d{2}\\W\\d{2})?)?",
+    "color": "magenta+b"
+},{
+    "name": "stracktrace",
+    "expr": "(?i)(Stack trace:|Previous exception:|#[0-9]+ )",
+    "replace": "\n\t$1"
+},{
+    "name": "keyvalue",
+    "expr": "(?:\"|\')([^'\"=:]+)(?:\"|\')(?:[:=]\\s*)",
+    "color": "cyan"
+}]
