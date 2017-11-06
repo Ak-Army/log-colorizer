@@ -120,6 +120,16 @@ func main() {
 		args := flag.Args()
 		fmt.Printf("Got parts: %+v\n", args)
 		if len(args) > 0 {
+			colors := []string{
+				"red",
+				"green",
+				"yellow",
+				"blue",
+				"magenta",
+				"cyan",
+			}
+			colorLen := len(colors)
+			ci := 0
 			for i, part := range args {
 				partEx, err := regexp.Compile(part)
 				if err != nil {
@@ -131,8 +141,12 @@ func main() {
 							string: part,
 							expr:   partEx,
 						},
-						Color: "red",
+						Color: fmt.Sprintf("+b:%s", colors[ci]),
 					})
+					ci+= 1
+					if (colorLen <= ci) {
+						ci = 0
+					}
 				}
 			}
 		}
