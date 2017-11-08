@@ -13,9 +13,9 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"strconv"
 
 	"github.com/mgutz/ansi"
-	"strconv"
 )
 
 var CONFIG_FILE string
@@ -118,7 +118,7 @@ func main() {
 		fmt.Println("Aborting.")
 	} else {
 		args := flag.Args()
-		fmt.Printf("Got parts: %+v\n", args)
+		fmt.Printf("Highlite: %+v\n", args)
 		if len(args) > 0 {
 			colors := []string{
 				"red",
@@ -143,8 +143,8 @@ func main() {
 						},
 						Color: fmt.Sprintf("+b:%s", colors[ci]),
 					})
-					ci+= 1
-					if (colorLen <= ci) {
+					ci += 1
+					if colorLen <= ci {
 						ci = 0
 					}
 				}
