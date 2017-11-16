@@ -11,9 +11,9 @@ import (
 	"os/user"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
-	"strconv"
 
 	"github.com/mgutz/ansi"
 )
@@ -82,16 +82,28 @@ func readRules(cfgFileName string) ([]rule, error) {
 }
 
 func init() {
-	config_dir := "./"
+	config_file := path.Join("/", "usr", "share", "log-colorizer", "config", "config.json")
 	current_user, err := user.Current()
 	if err == nil {
-		config_dir = current_user.HomeDir
+		homeDirConfigfile := path.Join(current_user.HomeDir, ".config.json")
+		if exists(homeDirConfigfile) {
+			config_file = path.Join(current_user.HomeDir, ".config.json")
+		}
 	}
-
-	config_file := path.Join(config_dir, ".config.json")
 
 	flag.StringVar(&CONFIG_FILE, "c", config_file, "config file location")
 	flag.StringVar(&INPUT_FILE, "i", "", "input file (defaults to stdin)")
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
 func getInputFile() (io.ReadCloser, error) {
@@ -106,20 +118,20 @@ func getInputFile() (io.ReadCloser, error) {
 
 func main() {
 	flag.Parse()
+	fmt.Printf("Log-colorizer version: %s build time: %s, config: %s\n", Version, BuildTime, CONFIG_FILE)
 	rawReader, err := getInputFile()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer rawReader.Close()
-
 	if rules, err := readRules(CONFIG_FILE); err != nil {
 		fmt.Println("Error while reading rules:", err)
 		fmt.Println("Aborting.")
 	} else {
 		args := flag.Args()
-		fmt.Printf("Highlite: %+v\n", args)
 		if len(args) > 0 {
+			fmt.Printf("Highlite: %+v\n", args)
 			colors := []string{
 				"red",
 				"green",

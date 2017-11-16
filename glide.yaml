@@ -1,3 +1,10 @@
 package: github.com/Ak-Army/log-colorizer
+packageName: log-colorizer
+description: colorizing output
+executableName: log-colorizer
+maintainer: Ak-Army <akarmyster@gmail.com>
+init: none
+group: icalllog
+user: icalllog
 import:
 - package: github.com/mgutz/ansi
