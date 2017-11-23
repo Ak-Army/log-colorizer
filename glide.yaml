@@ -4,7 +4,7 @@ description: colorizing output
 executableName: log-colorizer
 maintainer: Ak-Army <akarmyster@gmail.com>
 init: none
-group: icalllog
-user: icalllog
+group: icall
+user: icall
 import:
 - package: github.com/mgutz/ansi
