@@ -18,9 +18,11 @@ import (
 	"github.com/mgutz/ansi"
 )
 
-var configFile string
-var inputFile string
-var caseInsensitive bool
+var opts struct {
+	configFile      string
+	inputFile       string
+	caseInsensitive bool
+}
 
 type rule struct {
 	Name    string `json:"name"`
@@ -49,6 +51,7 @@ func (regex *regex) UnmarshalJSON(data []byte) (err error) {
 	regex.expr, err = regexp.Compile(exprString)
 	return
 }
+
 func (regex *regex) MarshalJSON() ([]byte, error) {
 	return json.Marshal(regex.string)
 }
@@ -91,9 +94,10 @@ func init() {
 			config = path.Join(currentUser.HomeDir, ".config.json")
 		}
 	}
-	flag.StringVar(&configFile, "c", config, "config file location")
-	flag.StringVar(&inputFile, "f", "", "input file (defaults to stdin)")
-	flag.BoolVar(&caseInsensitive, "i", false, "search is case-insensitive if specified")
+
+	flag.StringVar(&opts.configFile, "c", config, "config file location")
+	flag.StringVar(&opts.inputFile, "f", "", "input file (defaults to stdin)")
+	flag.BoolVar(&opts.caseInsensitive, "i", false, "search is case-insensitive if specified")
 }
 
 func exists(path string) bool {
@@ -108,9 +112,9 @@ func exists(path string) bool {
 }
 
 func getInputFile() (io.ReadCloser, error) {
-	if inputFile == "" {
+	if opts.inputFile == "" {
 		return ioutil.NopCloser(os.Stdin), nil
-	} else if file, err := os.Open(inputFile); err != nil {
+	} else if file, err := os.Open(opts.inputFile); err != nil {
 		return nil, err
 	} else {
 		return file, nil
@@ -119,14 +123,14 @@ func getInputFile() (io.ReadCloser, error) {
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Log-colorizer version: %s build time: %s, config: %s\n", Version, BuildTime, configFile)
+	fmt.Printf("Log-colorizer version: %s build time: %s, config: %s\n", Version, BuildTime, opts.configFile)
 	rawReader, err := getInputFile()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer rawReader.Close()
-	if rules, err := readRules(configFile); err != nil {
+	if rules, err := readRules(opts.configFile); err != nil {
 		fmt.Println("Error while reading rules:", err)
 		fmt.Println("Aborting.")
 	} else {
@@ -144,7 +148,7 @@ func main() {
 			colorLen := len(colors)
 			ci := 0
 			for i, part := range args {
-				if caseInsensitive && inputFile == "" {
+				if opts.caseInsensitive {
 					part = "(?i)" + part
 				}
 				partEx, err := regexp.Compile(part)
