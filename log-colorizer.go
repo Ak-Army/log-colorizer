@@ -18,8 +18,11 @@ import (
 	"github.com/mgutz/ansi"
 )
 
-var CONFIG_FILE string
-var INPUT_FILE string
+var opts struct {
+	configFile      string
+	inputFile       string
+	caseInsensitive bool
+}
 
 type rule struct {
 	Name    string `json:"name"`
@@ -48,6 +51,7 @@ func (regex *regex) UnmarshalJSON(data []byte) (err error) {
 	regex.expr, err = regexp.Compile(exprString)
 	return
 }
+
 func (regex *regex) MarshalJSON() ([]byte, error) {
 	return json.Marshal(regex.string)
 }
@@ -82,17 +86,18 @@ func readRules(cfgFileName string) ([]rule, error) {
 }
 
 func init() {
-	config_file := path.Join("/", "usr", "share", "log-colorizer", "config", "config.json")
-	current_user, err := user.Current()
+	config := path.Join("/", "usr", "share", "log-colorizer", "config", "config.json")
+	currentUser, err := user.Current()
 	if err == nil {
-		homeDirConfigfile := path.Join(current_user.HomeDir, ".config.json")
+		homeDirConfigfile := path.Join(currentUser.HomeDir, ".config.json")
 		if exists(homeDirConfigfile) {
-			config_file = path.Join(current_user.HomeDir, ".config.json")
+			config = path.Join(currentUser.HomeDir, ".config.json")
 		}
 	}
 
-	flag.StringVar(&CONFIG_FILE, "c", config_file, "config file location")
-	flag.StringVar(&INPUT_FILE, "i", "", "input file (defaults to stdin)")
+	flag.StringVar(&opts.configFile, "c", config, "config file location")
+	flag.StringVar(&opts.inputFile, "f", "", "input file (defaults to stdin)")
+	flag.BoolVar(&opts.caseInsensitive, "i", false, "search is case-insensitive if specified")
 }
 
 func exists(path string) bool {
@@ -107,9 +112,9 @@ func exists(path string) bool {
 }
 
 func getInputFile() (io.ReadCloser, error) {
-	if INPUT_FILE == "" {
+	if opts.inputFile == "" {
 		return ioutil.NopCloser(os.Stdin), nil
-	} else if file, err := os.Open(INPUT_FILE); err != nil {
+	} else if file, err := os.Open(opts.inputFile); err != nil {
 		return nil, err
 	} else {
 		return file, nil
@@ -118,14 +123,14 @@ func getInputFile() (io.ReadCloser, error) {
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Log-colorizer version: %s build time: %s, config: %s\n", Version, BuildTime, CONFIG_FILE)
+	fmt.Printf("Log-colorizer version: %s build time: %s, config: %s\n", Version, BuildTime, opts.configFile)
 	rawReader, err := getInputFile()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer rawReader.Close()
-	if rules, err := readRules(CONFIG_FILE); err != nil {
+	if rules, err := readRules(opts.configFile); err != nil {
 		fmt.Println("Error while reading rules:", err)
 		fmt.Println("Aborting.")
 	} else {
@@ -143,6 +148,9 @@ func main() {
 			colorLen := len(colors)
 			ci := 0
 			for i, part := range args {
+				if opts.caseInsensitive {
+					part = "(?i)" + part
+				}
 				partEx, err := regexp.Compile(part)
 				if err != nil {
 					fmt.Println("Cant use rule:", part, err)
@@ -155,14 +163,13 @@ func main() {
 						},
 						Color: fmt.Sprintf("+b:%s", colors[ci]),
 					})
-					ci += 1
+					ci++
 					if colorLen <= ci {
 						ci = 0
 					}
 				}
 			}
 		}
-
 		rdr := bufio.NewReader(rawReader)
 
 		read := func() (string, error) {
@@ -173,8 +180,6 @@ func main() {
 				line = rule.Transform(strings.TrimRightFunc(line, unicode.IsSpace))
 			}
 			fmt.Println(line)
-
 		}
 	}
-
 }
