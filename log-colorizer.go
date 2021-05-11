@@ -18,8 +18,9 @@ import (
 	"github.com/mgutz/ansi"
 )
 
-var CONFIG_FILE string
-var INPUT_FILE string
+var ConfigFile string
+var InputFile string
+var CaseInsensitive bool
 
 type rule struct {
 	Name    string `json:"name"`
@@ -91,8 +92,9 @@ func init() {
 		}
 	}
 
-	flag.StringVar(&CONFIG_FILE, "c", config_file, "config file location")
-	flag.StringVar(&INPUT_FILE, "i", "", "input file (defaults to stdin)")
+	flag.StringVar(&ConfigFile, "c", config_file, "config file location")
+	flag.StringVar(&InputFile, "f", "", "input file (defaults to stdin)")
+	flag.BoolVar(&CaseInsensitive, "i", false, "case insensitive")
 }
 
 func exists(path string) bool {
@@ -107,9 +109,9 @@ func exists(path string) bool {
 }
 
 func getInputFile() (io.ReadCloser, error) {
-	if INPUT_FILE == "" {
+	if InputFile == "" {
 		return ioutil.NopCloser(os.Stdin), nil
-	} else if file, err := os.Open(INPUT_FILE); err != nil {
+	} else if file, err := os.Open(InputFile); err != nil {
 		return nil, err
 	} else {
 		return file, nil
@@ -118,14 +120,14 @@ func getInputFile() (io.ReadCloser, error) {
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Log-colorizer version: %s build time: %s, config: %s\n", Version, BuildTime, CONFIG_FILE)
+	fmt.Printf("Log-colorizer version: %s build time: %s, config: %s\n", Version, BuildTime, ConfigFile)
 	rawReader, err := getInputFile()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer rawReader.Close()
-	if rules, err := readRules(CONFIG_FILE); err != nil {
+	if rules, err := readRules(ConfigFile); err != nil {
 		fmt.Println("Error while reading rules:", err)
 		fmt.Println("Aborting.")
 	} else {
@@ -143,6 +145,9 @@ func main() {
 			colorLen := len(colors)
 			ci := 0
 			for i, part := range args {
+				if CaseInsensitive {
+					part="(?i)"+part
+				}
 				partEx, err := regexp.Compile(part)
 				if err != nil {
 					fmt.Println("Cant use rule:", part, err)

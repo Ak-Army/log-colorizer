@@ -8,8 +8,8 @@ MAIN_FILE = log-colorizer.go
 export PATH := $(PATH):$(GOPATH)/bin
 
 init:
-	${GO_EXECUTABLE} get github.com/Masterminds/glide
-	${GOPATH}/bin/glide ${GLIDEOPS} install
+	${GO_EXECUTABLE} mod download
+	${GO_EXECUTABLE} mod verify
 
 build: init
 	${GO_EXECUTABLE} build \

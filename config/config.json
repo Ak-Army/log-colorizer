@@ -51,4 +51,8 @@
     "name": "uuid",
     "expr": "([0-9a-z]+-[0-9a-z]+-[0-9a-z]+-[0-9a-z]+-[0-9a-z]+)",
     "color": "green"
+},{
+    "name": "keyValue",
+    "expr": " [a-zA-Z_-]+=",
+    "color": "yellow"
 }]
