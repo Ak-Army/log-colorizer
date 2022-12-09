@@ -27,6 +27,8 @@ type rule struct {
 	Regex   regex  `json:"expr"`
 	Color   string `json:"color"`
 	Replace string `json:"replace,omitempty"`
+
+	colorFunc func(string) string
 }
 
 type regex struct {
@@ -61,7 +63,10 @@ func (r rule) Transform(line string) string {
 			s = r.Regex.expr.ReplaceAllString(s, r.Replace)
 		}
 		if r.Color != "" {
-			s = ansi.Color(s, r.Color)
+			if r.colorFunc == nil {
+				r.colorFunc = ansi.ColorFunc(r.Color)
+			}
+			s = r.colorFunc(s)
 		}
 		return s
 	})
@@ -146,7 +151,7 @@ func main() {
 			ci := 0
 			for i, part := range args {
 				if CaseInsensitive {
-					part="(?i)"+part
+					part = "(?i)" + part
 				}
 				partEx, err := regexp.Compile(part)
 				if err != nil {
@@ -167,9 +172,7 @@ func main() {
 				}
 			}
 		}
-
-		rdr := bufio.NewReader(rawReader)
-
+		rdr := bufio.NewReaderSize(rawReader, 100)
 		read := func() (string, error) {
 			return rdr.ReadString('\n')
 		}
